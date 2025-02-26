@@ -1,123 +1,111 @@
-// 🔥 Firebase Configuration (Replace with your details)
-const firebaseConfig = {
-    apiKey: "YOUR-API-KEY",
-    authDomain: "YOUR-PROJECT.firebaseapp.com",
-    projectId: "YOUR-PROJECT-ID",
-    storageBucket: "YOUR-PROJECT.appspot.com",
-    messagingSenderId: "YOUR-SENDER-ID",
-    appId: "YOUR-APP-ID"
-};
+// Connect to Supabase
+const SUPABASE_URL = "https://cxcdqcpfwwkparpurodg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4Y2RxY3Bmd3drcGFycHVyb2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1MzcyMDAsImV4cCI6MjA1NjExMzIwMH0.PtE9eg7Z20YL_pgHli-FbAazWxUIVaydkSHuomeFz1E";
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ──────────────── 1️⃣ SIGN UP ──────────────── */
-function signUp() {
-    const email = document.getElementById("signup-email").value;
-    const password = document.getElementById("signup-password").value;
+// Step 2: User Registration
+async function registerUser(username, password) {
+    const { user, error } = await supabase.auth.signUp({
+        email: username,
+        password: password
+    });
 
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(() => alert("Signup successful! Please log in."))
-        .catch(error => alert(error.message));
-}
-
-/* ──────────────── 2️⃣ LOGIN ──────────────── */
-function login() {
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-            alert("Login successful!");
-            loadEntries();
-        })
-        .catch(error => alert(error.message));
-}
-
-/* ──────────────── 3️⃣ LOGOUT ──────────────── */
-function logout() {
-    auth.signOut()
-        .then(() => {
-            alert("Logged out.");
-            document.getElementById("entries").innerHTML = "";
-        })
-        .catch(error => alert(error.message));
-}
-
-/* ──────────────── 4️⃣ SAVE DIARY ENTRY ──────────────── */
-function saveEntry() {
-    const user = auth.currentUser;
-    if (!user) {
-        alert("You must be logged in to save an entry!");
-        return;
-    }
-
-    const title = document.getElementById("entry-title").value;
-    const content = document.getElementById("entry-content").value;
-
-    if (title.trim() === "" || content.trim() === "") {
-        alert("Title and content cannot be empty.");
-        return;
-    }
-
-    db.collection("diary").add({
-        userId: user.uid,
-        title: title,
-        content: content,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        alert("Entry saved!");
-        document.getElementById("entry-title").value = "";
-        document.getElementById("entry-content").value = "";
-        loadEntries();
-    }).catch(error => alert("Error saving entry: " + error.message));
-}
-
-/* ──────────────── 5️⃣ LOAD ENTRIES ──────────────── */
-function loadEntries() {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    db.collection("diary").where("userId", "==", user.uid)
-        .orderBy("timestamp", "desc")
-        .onSnapshot(snapshot => {
-            let entriesHtml = "";
-            snapshot.forEach(doc => {
-                let entry = doc.data();
-                entriesHtml += `
-                    <div class="entry">
-                        <h3>${entry.title}</h3>
-                        <p>${entry.content}</p>
-                        <button class="btn-danger" onclick="deleteEntry('${doc.id}')">Delete</button>
-                    </div>
-                `;
-            });
-            document.getElementById("entries").innerHTML = entriesHtml;
-        });
-}
-
-/* ──────────────── 6️⃣ DELETE ENTRY ──────────────── */
-function deleteEntry(entryId) {
-    if (!confirm("Are you sure you want to delete this entry?")) return;
-
-    db.collection("diary").doc(entryId).delete()
-        .then(() => {
-            alert("Entry deleted.");
-            loadEntries();
-        })
-        .catch(error => alert("Error deleting entry: " + error.message));
-}
-
-/* ──────────────── 7️⃣ DETECT LOGIN STATUS ──────────────── */
-auth.onAuthStateChanged(user => {
-    if (user) {
-        document.getElementById("auth-section").classList.add("hidden");
-        document.getElementById("diary-section").classList.remove("hidden");
-        loadEntries();
+    if (error) {
+        console.error("Registration Error:", error.message);
+        alert(error.message);
     } else {
-        document.getElementById("auth-section").classList.remove("hidden");
-        document.getElementById("diary-section").classList.add("hidden");
+        console.log("User Registered:", user);
+        alert("Registration successful! Please log in.");
     }
-});
+}
+
+// Step 3: User Login
+async function loginUser(username, password) {
+    const { user, error } = await supabase.auth.signInWithPassword({
+        email: username,
+        password: password
+    });
+
+    if (error) {
+        console.error("Login Error:", error.message);
+        alert(error.message);
+    } else {
+        console.log("User Logged In:", user);
+        alert("Login successful!");
+        loadDiaryEntries();
+    }
+}
+
+// Step 4: Save Diary Entry
+async function saveDiaryEntry(title, content) {
+    const user = supabase.auth.user();
+    if (!user) {
+        alert("You must be logged in to save entries!");
+        return;
+    }
+
+    const { data, error } = await supabase
+        .from("diary_entries")
+        .insert([{ user_id: user.id, title: title, content: content }]);
+
+    if (error) {
+        console.error("Error saving diary entry:", error.message);
+        alert(error.message);
+    } else {
+        console.log("Diary Entry Saved:", data);
+        alert("Diary entry saved successfully!");
+        loadDiaryEntries();
+    }
+}
+
+// Step 5: Fetch Diary Entries
+async function loadDiaryEntries() {
+    const user = supabase.auth.user();
+    if (!user) {
+        alert("Please log in to view your diary entries!");
+        return;
+    }
+
+    const { data, error } = await supabase
+        .from("diary_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Error fetching diary entries:", error.message);
+    } else {
+        console.log("Diary Entries:", data);
+        displayDiaryEntries(data);
+    }
+}
+
+// Step 6: Display Diary Entries on Page
+function displayDiaryEntries(entries) {
+    const diaryContainer = document.getElementById("diary-entries");
+    diaryContainer.innerHTML = "";
+
+    entries.forEach(entry => {
+        const entryDiv = document.createElement("div");
+        entryDiv.classList.add("diary-entry");
+        entryDiv.innerHTML = `
+            <h3>${entry.title}</h3>
+            <p>${entry.content}</p>
+            <small>Created: ${new Date(entry.created_at).toLocaleString()}</small>
+        `;
+        diaryContainer.appendChild(entryDiv);
+    });
+}
+
+// Step 7: User Logout
+async function logoutUser() {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        console.error("Logout Error:", error.message);
+        alert(error.message);
+    } else {
+        console.log("User Logged Out");
+        alert("You have been logged out.");
+    }
+}
