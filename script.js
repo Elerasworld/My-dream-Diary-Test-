@@ -1,8 +1,14 @@
 // Connect to Supabase
 const SUPABASE_URL = "https://cxcdqcpfwwkparpurodg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4Y2RxY3Bmd3drcGFycHVyb2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1MzcyMDAsImV4cCI6MjA1NjExMzIwMH0.PtE9eg7Z20YL_pgHli-FbAazWxUIVaydkSHuomeFz1E";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
+    iJzdXBhYmFzZSIsInJlZiI6ImN4Y2RxY3Bmd3drcGFycHVyb2RnIiwicm9sZSI6ImFub24
+    iLCJpYXQiOjE3NDA1MzcyMDAsImV4cCI6MjA1NjExMzIwMH0.PtE9eg7Z20YL_pgHli-FbAaz
+        WxUIVaydkSHuomeFz1E";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = supabase.createClient(https://cxcdqcpfwwkparpurodg.supabase.co
+                                       , eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJl
+                                       ZiI6ImN4Y2RxY3Bmd3drcGFycHVyb2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1MzcyMDAsI
+                                       mV4cCI6MjA1NjExMzIwMH0.PtE9eg7Z20YL_pgHli-FbAazWxUIVaydkSHuomeFz1E);
 
 // Step 2: User Registration
 async function registerUser(username, password) {
